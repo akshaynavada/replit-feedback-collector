@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Feedback & NPS"
+description = "A focused feedback and NPS collector with a public survey, a results dashboard with average scores, and CSV export."
+version = "1.0.0"
+id = "artifacts/feedback-nps"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24694
+
+[services.development]
+run = "pnpm --filter @workspace/feedback-nps run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/feedback-nps", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/feedback-nps/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24694"
+BASE_PATH = "/"

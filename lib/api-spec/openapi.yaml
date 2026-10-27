@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: feedback
+    description: NPS feedback collection
 paths:
   /healthz:
     get:
@@ -24,6 +26,79 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /feedback:
+    get:
+      operationId: listFeedback
+      tags: [feedback]
+      summary: List feedback responses
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Feedback responses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Feedback"
+    post:
+      operationId: createFeedback
+      tags: [feedback]
+      summary: Submit feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackInput"
+      responses:
+        "201":
+          description: Feedback saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feedback"
+        "400":
+          description: Invalid feedback
+  /feedback/summary:
+    get:
+      operationId: getFeedbackSummary
+      tags: [feedback]
+      summary: Get feedback averages and NPS breakdown
+      responses:
+        "200":
+          description: Feedback summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackSummary"
+  /feedback/export:
+    get:
+      operationId: exportFeedback
+      tags: [feedback]
+      summary: Export feedback as CSV
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
 components:
   schemas:
     HealthStatus:
@@ -33,4 +108,50 @@ components:
           type: string
       required:
         - status
+    Feedback:
+      type: object
+      required: [id, score, comment, createdAt]
+      properties:
+        id:
+          type: integer
+        score:
+          type: integer
+          minimum: 0
+          maximum: 10
+        comment:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+    FeedbackInput:
+      type: object
+      required: [score]
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 10
+        comment:
+          type: string
+          maxLength: 2000
+    FeedbackSummary:
+      type: object
+      required: [total, average, nps, promoters, passives, detractors, recentCount, previousCount]
+      properties:
+        total:
+          type: integer
+        average:
+          type: number
+        nps:
+          type: number
+        promoters:
+          type: integer
+        passives:
+          type: integer
+        detractors:
+          type: integer
+        recentCount:
+          type: integer
+        previousCount:
+          type: integer
 
